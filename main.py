@@ -1,11 +1,13 @@
 from fastapi import FastAPI
-from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
+
 import time
-import asyncio
 import cv2
 from sse_starlette import EventSourceResponse
 
+VIDEO_PATH = "videos/walking.mp4"
+CONFIG_PATH = "yolov4-tiny.cfg"
+WEIGHTS_PATH = "yolov4-tiny.weights"
 
 app = FastAPI()
 
@@ -29,11 +31,11 @@ def detect_person():
         class_names = [cname.strip() for cname in f.readlines()]
 
     # CAPTURA DO VIDEO
-    cap = cv2.VideoCapture("videos/walking.mp4")
+    cap = cv2.VideoCapture(VIDEO_PATH)
 
     # CARREGANDO OS PESOS DA REDE NEURAL
     #net = cv2.dnn.readNet("weights/yolov4.weights", "cfg/yolov4.cfg")
-    net = cv2.dnn.readNet("yolov4-tiny.weights", "yolov4-tiny.cfg")
+    net = cv2.dnn.readNet(WEIGHTS_PATH, CONFIG_PATH)
 
     # SETANDO OS PARAMETROS DA REDE NEURAL
     model = cv2.dnn_DetectionModel(net)
