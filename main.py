@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 import time
 import cv2
+import json
 from sse_starlette import EventSourceResponse
 
 VIDEO_PATH = "videos/walking.mp4"
@@ -32,7 +33,9 @@ def detect_person():
 
     # CAPTURA DO VIDEO
     cap = cv2.VideoCapture(VIDEO_PATH)
-
+    length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    print(length)
+    frames = 0
     # CARREGANDO OS PESOS DA REDE NEURAL
     #net = cv2.dnn.readNet("weights/yolov4.weights", "cfg/yolov4.cfg")
     net = cv2.dnn.readNet(WEIGHTS_PATH, CONFIG_PATH)
@@ -46,6 +49,7 @@ def detect_person():
         
         # CAPTURA DO FRAME
         _, frame = cap.read()
+        frames += 1
         
         # COMEÇO DA CONTAGEM DOS MS
         start = time.time()
@@ -58,27 +62,22 @@ def detect_person():
         
         ## INICIA O CONTADOR DE PESSOAS
         counter = 0
-
-        # inicializa o label_counter fora do loop (para ser usado pelo yield)
-        label_counter = ""
-        data_counter = ""
+        detections = []
         
         # PERCORRER TODAS AS DETECCOES
         for (classid, score, box) in zip(classes, scores, boxes):
             
             # GERANDO UMA COR PARA A CLASSE
             color = COLORS[int(classid) % len(COLORS)]
-            
             # --- contador ---
             if classid == 0:
                 counter += 1
-            label_counter = f"Pessoas: {counter} - "
-            data_counter = f"{counter}\n"
+                detections.append(f"Person[{counter}]: {score*100:.2f}%")
             # -----------
             
             # PEGANDO O NOME DA CLASSE PELO ID E O SEU SCORE DE ACURACIA
             # label = f"{class_names[classid[0]]} : {score}"
-            label = f"{class_names[classid]} : {score}"
+            label = f"[{counter}] {class_names[classid]} : {score*100:.2f}%"
             
             # DESENHANDO A BOX DE DETECCAO
             cv2.rectangle(frame, box, color, 2)
@@ -87,8 +86,9 @@ def detect_person():
             cv2.putText(frame, label, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
             
         # CALCULANDO O TEMPO QUE LEVOU PARA FAZER A DETECCAO
-        fps_label = f"{label_counter}FPS: {round((1.0/(end - start)),2)}"
-            
+        fps = round((1.0/(end - start)),2)
+        fps_label = f"Pessoas: {counter} FPS: {fps}"
+        time_ms = end - start    
         # ESCREVENDO O FPS NA IMAGEM
         cv2.putText(frame, fps_label, (0, 25), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 0), 5)
         cv2.putText(frame, fps_label, (0, 25), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0), 3)
@@ -100,7 +100,14 @@ def detect_person():
         if cv2.waitKey(1) == 27:
             break
         
-        yield data_counter
+        yield json.dumps({
+            'frame:': frames,
+            'person': counter,
+            'fps': fps,
+            'detection_time': time_ms,
+            'detections': detections
+        })
+        
     
     # LIBERACAO DA CAMERA E DESTROI TODAS AS JANELAS
     cap.release()
