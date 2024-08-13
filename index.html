@@ -2,11 +2,51 @@
 <html>
   <head>
     <title>SSE Exemplo</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Heebo:wght@100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Montserrat", sans-serif;
+        background-color: #f7f7f7;
+        margin-top: 6rem;
+      }
+
+      .container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+
+      h2 {
+        font-size: 3rem;
+      }
+
+      p {
+        font-size: 6rem;
+        font-weight: 700;
+        color: #333;
+        border: 2px solid red;
+        display: block;
+        margin-top: 3rem;
+      }
+    </style>
   </head>
   <body>
-    <h1>Pessoas:</h1>
-    <div>
-      <p style="font-size: 40px" id="message"></p>
+    <div class="container">
+      <h2>Pessoas:</h2>
+      <p id="message"></p>
     </div>
 
     <script>
