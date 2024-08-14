@@ -7,6 +7,7 @@ import json
 from sse_starlette import EventSourceResponse
 import socket
 import numpy as np
+import datetime as dt
 
 VIDEO_PATH = "videos/walking.mp4"
 CONFIG_PATH = "yolov4-tiny.cfg"
@@ -94,7 +95,8 @@ def detect_person():
             # CALCULANDO O TEMPO QUE LEVOU PARA FAZER A DETECCAO
             fps = round((1.0/(end - start)),2)
             fps_label = f"Pessoas: {counter} FPS: {fps}"
-            time_ms = end - start    
+            time_ms = end - start
+            datetime = dt.datetime.now    
             
             # ESCREVENDO O FPS NA IMAGEM
             cv2.putText(frame, fps_label, (0, 25), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 0), 5)
@@ -111,7 +113,8 @@ def detect_person():
             'person': counter,
             'fps': fps,
             'detection_time': time_ms,
-            'detections': detections
+            'detections': detections,
+            'datetime': datetime
         })
         
     
